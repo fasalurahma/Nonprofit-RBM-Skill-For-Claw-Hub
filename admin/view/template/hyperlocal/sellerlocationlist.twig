@@ -1,0 +1,130 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right">
+
+      <a href="{{ add }}" data-toggle="tooltip" title="{{ button_add }}" class="btn btn-primary"><i class="fa fa-plus"></i></a>
+        <button type="button" data-toggle="tooltip" title="{{ button_delete }}" class="btn btn-danger" onclick="confirm('{{ text_confirm }}') ? $('#form').submit() : false;"><i class="fa fa-trash-o"></i></button>
+          <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li><a href="{{ breadcrumb['href'] }}">{{ breadcrumb['text'] }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if error_warning %}
+    <div class="alert alert-danger">
+        <i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+    {% if success %}
+    <div class="alert alert-success"><i class="fa fa-exclamation-circle"></i> {{ success }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_edit }}</h3>
+      </div>
+      <div class="panel-body">
+        <div class="well">
+          <div class="row">
+            <div class="col-sm-6">
+              <div class="form-group">
+                <label class="control-label" for="input-seller-name">{{ entry_seller_name }}</label>
+                <input type="text" name="filter_seller_name" value="{{ filter_seller_name }}" placeholder="{{ entry_seller_name }}" id="input-seller-name" class="form-control" />
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="form-group">
+                <label class="control-label" for="input-location">{{ entry_location }}</label>
+                <input type="text" name="filter_location" value="{{ filter_location }}" placeholder="{{ entry_location }}" id="input-location" class="form-control" />
+              </div>
+              <button type="button" id="button-filter" class="btn btn-primary pull-right"><i class="fa fa-search"></i> {{ button_filter }}</button>
+            </div>
+          </div>
+        </div>
+      <form action="{{ delete }}" method="post" enctype="multipart/form-data" id="form" class="form-horizontal">
+            <div class="table-responsive">
+              <table id="location" class="table table-stripped table-bordered table-hover">
+                <thead>
+                  <tr>
+                    <td width="1"  class="text-center"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', this.checked);" /></td>
+                    <td class="text-center col-sm-6">{{ text_seller }}</td>
+                    <td class="text-center col-sm-6">{{ text_location }}</td>
+                  </tr>
+                </thead>
+                <tbody id="main_table">
+                {% if partners is defined and partners %}
+                {% for partner, value in partners %}
+                <tr id="location_{{ value['location_id'] }}">
+                  <td class="text-center">{% if value['location_id'] in selected %}
+                    <input type="checkbox" name="selected[]" value="{{ value['location_id'] }}" checked="checked" />
+                    {% else %}
+                    <input type="checkbox" name="selected[]" value="{{ value['location_id'] }}" />
+                    {% endif %}</td>
+                  <td class="text-center">{{ value['name'] }}</td>
+                  <td class="text-center">{{ value['location'] }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                  <tr><td class="text-center" colspan="10">{{ error_no_record }}</td></tr>
+                {% endif %}
+                </tbody>
+              </table>
+            </div>
+            </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+$('#button-filter').on('click', function() {
+  url = 'index.php?route=hyperlocal/sellerlocation&user_token={{ user_token }}';
+
+  var filter_seller_name = $('input[name=\'filter_seller_name\']').val();
+
+  if (filter_seller_name) {
+    url += '&filter_seller_name=' + encodeURIComponent(filter_seller_name);
+  }
+
+  var filter_location = $('input[name=\'filter_location\']').val();
+
+  if (filter_location) {
+    url += '&filter_location=' + encodeURIComponent(filter_location);
+  }
+
+  location = url;
+});
+</script>
+<script type="text/javascript">
+  $('input[name=\'filter_seller_name\']').autocomplete({
+  delay: 0,
+  source: function(request, response) {
+    $.ajax({
+      url: 'index.php?route=hyperlocal/sellerlocation/autocomplete&user_token={{ user_token }}&filter_seller_name=' +  encodeURIComponent(request),
+      dataType: 'json',
+      success: function(json) {
+        response($.map(json, function(item) {
+          return {
+            label: item['seller_name'],
+            value: item['id']
+          }
+        }));
+      }
+    });
+  },
+  select: function(item) {
+    $('input[name=\'filter_seller_name\']').val(item['label']);
+    return false;
+  }
+});
+</script>
+{{ footer }}

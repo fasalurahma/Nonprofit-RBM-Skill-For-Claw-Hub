@@ -1,0 +1,359 @@
+{{ header }}
+<style>
+
+  .wk-seller-thumb {
+    margin-bottom: 20px;
+    margin-right: 5%;
+    width: 170%;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19) !important
+
+  }
+
+  .wk-seller-thumb .wk-caption {
+    background: #0b9bc2;
+    padding: 15px 5px 5px 5px;
+  }
+
+  .wk-seller-thumb{
+    color: white;
+  }
+
+.wk-caption {
+  height: 67% !important;
+}
+  .wk-caption a{
+    color: #0000EE;
+  }
+
+  .wk-seller-thumb .wk-caption p {
+    margin: 3px 0;
+    color: white;
+  }
+  #tabs.nav-tabs {
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(138, 122, 122);
+    background: rgb(244, 241, 255);
+    margin-bottom: 10px;
+    justify-content: flex-start;
+    min-width: 50px;
+}
+
+ul#tabs {
+    background-color: #fff !important;
+}
+ul#tabs >li.active {
+    background-color: #edf2fe;
+}
+#wk_seller_info_container:hover{
+  display:block;
+}
+</style>
+{{ j3.loadController('journal3/layout', 'top') }}
+<div id="container" class="container j-container">
+  <div class="row">{{ column_left }}{{ column_right}}
+    {% if column_left and column_right %}
+    {% set class = 'col-sm-6' %}
+    {% elseif column_left or column_right %}
+    {% set class = 'col-sm-9' %}
+    {% else %}
+    {% set class = 'col-sm-12' %}
+    {% endif %}
+    <div id="content" class="{{ class}}">
+      <div class="text-center" style="text-align:center">
+        <h3 class="information">{{ sell_header}}</h3>
+        <br/>
+        <a href="index.php?route=account/register" type="button" class="btn btn-primary">
+          {{ sell_title}}
+        </a>
+      </div>
+      <br/>
+      <ul id="tabs" class="nav nav-tabs htabs">
+        {% if tabs %}
+          {% for key, value in tabs %}
+              <li {% if not key %} class="active" {% endif %}><a href="{{ '#tab-' ~ key}}" data-toggle="tab">{{ value['hrefValue']}}</a></li>
+          {% endfor %}
+        {% endif %}
+      </ul>
+
+      <div class="tab-content" style="margin-top:30px; margin-left: 15px;">
+        {% for key, value in tabs %}
+          <div id="{{ 'tab-' ~ key}}" class="tab-pane tab-content {% if not key %} active {% endif %}">{{ value['description']}}</div>
+        {% endfor %}
+      </div>
+
+      <br/>
+      <div class="content">
+
+        {% if showpartners %}
+          <h3 class="text-info">
+            <b>{{ text_long_time_seller}}</b>
+          </h3>
+          <br/>
+          <div class="main-products product-grid" data-grid-classes="xs-50 sm-33 md-33 lg-25 xl-20 display-icon inline-button">
+            {% for partner in partners %}
+              <div class="product-layout  has-zero-price">
+                <div class="wk-seller-thumb">
+                  <div class="thumbnail">
+                    <a style="display:block;" href="{{ partner['sellerHref']}}">
+                      {% if partner['thumb'] %}
+                        <img src="{{ partner['thumb']}}" alt="{{ partner['name']}}"
+                        title="{{ partner['name']}}" class="img-responsive"/>
+                      {% else %}
+                        <div style="background-color:{{ partner['backgroundcolor']}}"></div>
+                      {% endif %}
+
+                    </a>
+                  </div>
+                  <div class="wk-caption">
+                    <a href="{{ partner['sellerHref']}}"><b>{{ partner['name']}}</b></a>
+                    {% if partner['country'] %}
+                      <p>{{ text_from }}<span data-toggle="tooltip" title="{{ text_from}}"><i class="fa fa-home"></i></span><b>{{ partner['country']}}</b></p>
+                    {% endif %}
+                    <p>{{ text_total_products}}{{ partner['total_products']}}</p>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if showproducts %}
+          <h3 class="text-info">
+            <b>{{ text_latest_product }}</b>
+          </h3>
+          <br/>
+
+          {% if j3.settings.get('sortBarStatus') %}
+          <div class="products-filter">
+            <div class="grid-list">
+              <button id="btn-grid-view"  class="view-btn"  data-toggle="tooltip" title="{{ button_grid }}" data-view="grid"></button>
+              <button id="btn-list-view"  class="view-btn" data-toggle="tooltip" title="{{ button_list }}" data-view="list"></button>
+              <a href="{{ compare }}" id="compare-total" class="compare-btn">{{ text_compare }}</a>
+            </div>
+            <div class="select-group">
+              <div class="input-group input-group-sm sort-by">
+                <label class="input-group-addon" for="input-sort">{{ text_sort }}</label>
+                <select id="input-sort" class="form-control" onchange="location = this.value;">
+                  {% for sorts in sorts %}
+                    {% if sorts.value == '%s-%s'|format(sort, order) %}
+                      <option value="{{ sorts.href }}" selected="selected">{{ sorts.text }}</option>
+                    {% else %}
+                      <option value="{{ sorts.href }}">{{ sorts.text }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="input-group input-group-sm per-page">
+                <label class="input-group-addon" for="input-limit">{{ text_limit }}</label>
+                <select id="input-limit" class="form-control" onchange="location = this.value;">
+                  {% for limits in limits %}
+                    {% if limits.value == limit %}
+                      <option value="{{ limits.href }}" selected="selected">{{ limits.text }}</option>
+                    {% else %}
+                      <option value="{{ limits.href }}">{{ limits.text }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+      <br>
+        <div class="main-products product-{{ j3.settings.get('globalProductView') }}">
+        {% set prefix = display == 'grid' ? 'ProductGrid' : 'ProductList' %}
+        {% for product in latest %}
+          {% set classes = j3.classes({
+            'has-countdown': product.date_end,
+            'has-zero-price': not product.price_value,
+            'has-extra-button': product.extra_buttons
+          }) %}
+          <div class="product-layout {{ j3.classes(product.classes) }} {{ classes }}">
+            <div class="product-thumb">
+              <div class="image">
+
+                {% if j3.settings.get('quickviewStatus') and not j3.document.isPhone() %}
+                <div class="quickview-button">   <a class="btn btn-quickview" {% if j3.settings.getIn('ProductGridQuickviewDisplay', _context) and j3.settings.getIn('ProductGridQuickviewTooltipStatus', _context) %}data-toggle="tooltip" data-tooltip-class="{{ module_id ? 'module-products-' ~ module_id ~ ' module-products-grid' : 'product-grid' }} quickview-tooltip" data-placement="{{ j3.settings.getIn('ProductGridQuickviewTooltipPosition', _context) }}" title="{{ j3.settings.get('quickviewText') }}"{% endif %} onclick="quickview('{{ product.product_id }}')"><span class="btn-text">{{ j3.settings.get('quickviewText') }}</span></a></div>
+                {% endif %}
+
+                <a href="{{ product.href }}" class="product-img {% if product.second_thumb %}has-second-image{% endif %}">
+                  <img src="{{ product.thumb }}" {% if product.thumb2x %} srcset="{{ product.thumb }} 1x, {{ product.thumb2x }} 2x" {% endif %} width="{{ image_width }}" height="{{ image_height }}" alt="{{ product.name }}" title="{{ product.name }}" class="img-responsive img-first"/>
+                  {% if product.second_thumb %}
+                    <img src="{{ product.second_thumb }}" {% if product.second_thumb2x %} srcset="{{ product.second_thumb }} 1x, {{ product.second_thumb2x }} 2x" {% endif %} width="{{ image_width }}" height="{{ image_height }}" alt="{{ product.name }}" title="{{ product.name }}" class="img-responsive img-second"/>
+                  {% endif %}
+                </a>
+
+                {% if product.labels %}
+                  <div class="product-labels">
+                    {% for id, label in product.labels %}
+                      <span class="product-label product-label-{{ id }} product-label-{{ label.display }}"><b>{{ label.label }}</b></span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+
+                {% if product.date_end %}
+                  <div class="countdown" data-date="{{ product.date_end }}"></div>
+                {% endif %}
+              </div>
+
+              <div class="caption">
+
+                {% if product.stat1 or product.stat2 %}
+                  <div class="stats">
+                    {% if product.stat1 %}
+                      <span class="stat-1"><span class="stats-label">{{ product.stat1.label }}:</span> <span>{{ product.stat1.text }}</span></span>
+                    {% endif %}
+                    {% if product.stat2 %}
+                      <span class="stat-2"><span class="stats-label">{{ product.stat2.label }}:</span> <span>{{ product.stat2.text }}</span></span>
+                    {% endif %}
+                  </div>
+                {% endif %}
+
+                <div class="name"><a href="{{ product.href }}">{{ product.name }}</a></div>
+
+                <p class="description">{{ product.description }}</p>
+
+                {% if product.price %}
+                  <div class="price">
+                    {% if product.special %}
+                      <span class="price-new">{{ product.special }}</span> <span class="price-old">{{ product.price }}</span>
+                    {% else %}
+                      <span class="price-new">{{ product.price }}</span>
+                    {% endif %}
+                    {% if product.tax %}
+                      <span class="price-tax">{{ text_tax }}{{ product.tax }}</span>
+                    {% endif %}
+                  </div>
+                {% endif %}
+
+
+                {% if showpartnerdetails is defined and showpartnerdetails %}
+               <div id="wk_seller_info_container" class="wk_seller_info">
+                 <div style="padding: 10px;background-color: #f8f8f8;border-top: 8px solid orange;">
+                   <div id="wk_seller_info_profpic">
+                     <img src="{{ product['avatar']}}" width="100%" height="100%" style="vertical-align:baseline;">
+                   </div>
+                   <div id="wk_seller_info_box">
+                     <h4 style="margin-bottom: 15px;margin-top: 0px;font-size: 13px;"><b>{{ text_seller}}</b></h4>
+                     <a href="{{ product['sellerHref']}}"><p style="margin:0; line-height: 15px;"><b>{{ product['seller_name']}}</b></p></a>
+                     {% if product['country'] %}
+                     <p style="max-width:135px;line-height:14px;">{{ text_from }}
+                         <span data-toggle="tooltip" title="{{ text_from}}"><i class="fa fa-home"></i></span>
+                         <b>{{ product['country']}}</b>
+                       </p>
+                     {% endif %}
+                   </div>
+                 </div>
+               </div>
+               {% endif %}
+
+                {% if product.rating %}
+                  <div class="rating {% if (j3.settings.getIn(prefix ~ 'RatingPosition', _context) == "hover") %}rating-hover{% endif %}">
+                    <div class="rating-stars">
+                      {% for i in 1..5 %}
+                        {% if product.rating < i %}
+                          <span class="fa fa-stack"><i class="fa fa-star-o fa-stack-2x"></i></span>
+                        {% else %}
+                          <span class="fa fa-stack"><i class="fa fa-star fa-stack-2x"></i><i class="fa fa-star-o fa-stack-2x"></i></span>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% else %}
+                  <div class="rating no-rating {% if (j3.settings.getIn(prefix ~ 'RatingPosition', _context) == "hover") %}rating-hover{% endif %}">
+                    <div class="rating-stars">
+                      {% for i in 1..5 %}
+                        {% if product.rating < i %}
+                          <span class="fa fa-stack"><i class="fa fa-star-o fa-stack-2x"></i></span>
+                        {% else %}
+                          <span class="fa fa-stack"><i class="fa fa-star fa-stack-2x"></i><i class="fa fa-star-o fa-stack-2x"></i></span>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endif %}
+
+
+                <div class="buttons-wrapper">
+                  <div class="button-group">
+                    <div class="cart-group">
+                      <div class="stepper">
+                        <input type="text" name="quantity" value="{{ product.minimum }}" data-minimum="{{ product.minimum }}" class="form-control"/>
+                        <input type="hidden" name="product_id" value="{{ product.product_id }}"/>
+                        <span>
+                        <i class="fa fa-angle-up"></i>
+                        <i class="fa fa-angle-down"></i>
+                      </span>
+                      </div>
+                      <a class="btn btn-cart" {% if (j3.settings.getIn(prefix ~ 'CartDisplay', _context) == "icon") and (j3.settings.getIn(prefix ~ 'CartTooltipStatus', _context)) %} data-toggle="tooltip" data-tooltip-class="{{ module_id ? 'module-products-' ~ module_id ~ ' module-products-grid' : 'product-grid' }} cart-tooltip" data-placement="{{ j3.settings.getIn(prefix ~ 'CartTooltipPosition', _context) }}" title="{{ button_cart }}" {% endif %} onclick="cart.add('{{ product.product_id }}', $(this).closest('.button-group').find('input[name=\'quantity\']').val());" data-loading-text="<span class='btn-text'>{{ button_cart }}</span>"><span class="btn-text">{{ button_cart }}</span></a>
+                    </div>
+
+                    <div class="wish-group">
+                      <a class="btn btn-wishlist" {% if (j3.settings.getIn(prefix ~ 'WishlistDisplay', _context) == "icon") and (j3.settings.getIn(prefix ~ 'WishlistTooltipStatus', _context)) %} data-toggle="tooltip" data-tooltip-class="{{ module_id ? 'module-products-' ~ module_id ~ ' module-products-grid' : 'product-grid' }} wishlist-tooltip" data-placement="{{ j3.settings.getIn(prefix ~ 'WishlistTooltipPosition', _context) }}" title="{{ button_wishlist }}" {% endif %} onclick="wishlist.add('{{ product.product_id }}')"><span class="btn-text">{{ button_wishlist }}</span></a>
+                      <a class="btn btn-compare" {% if (j3.settings.getIn(prefix ~ 'CompareDisplay', _context) == "icon") and (j3.settings.getIn(prefix ~ 'CompareTooltipStatus', _context)) %} data-toggle="tooltip" data-tooltip-class="{{ module_id ? 'module-products-' ~ module_id ~ ' module-products-grid' : 'product-grid' }} compare-tooltip" data-placement="{{ j3.settings.getIn(prefix ~ 'CompareTooltipPosition', _context) }}" title="{{ button_compare }}" {% endif %} onclick="compare.add('{{ product.product_id }}')"><span class="btn-text">{{ button_compare }}</span></a>
+                    </div>
+                  </div>
+
+                  {% if product.extra_buttons %}
+                    <div class="extra-group">
+                      {% for id, extra_button in product.extra_buttons %}
+                        <a class="btn btn-extra btn-extra-{{ id }}" {% if (j3.settings.getIn(prefix ~ 'ExtraButtonDisplay', _context) == "icon") and (j3.settings.getIn(prefix ~ 'ExtraButtonTooltipStatus', _context)) %} data-toggle="tooltip" data-tooltip-class="{{ module_id ? 'module-products-' ~ module_id ~ ' module-products-grid' : 'product-grid' }} extra-tooltip" data-placement="{{ j3.settings.getIn(prefix ~ 'ExtraButtonTooltipPosition', _context) }}" title="{{ extra_button.label }}" {% endif %} {% if extra_button.action == 'quickbuy' %}onclick="cart.add('{{ product.product_id }}', $(this).closest('.button-group').find('input[name=\'quantity\']').val(), true);"{% endif %} {% if extra_button.action == 'link' and extra_button.link.href %}href="{{ extra_button.link.href }}" data-product_id="{{ product.product_id }}"{% endif %} data-loading-text="<span class='btn-text'>{{ extra_button.label }}</span>"><span class="btn-text">{{ extra_button.label }}</span></a>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+
+
+        </div>
+        <div class="row pagination">
+          <div class="col-sm-6 text-left links">{{ pagination}}</div>
+          <div class="col-sm-6 text-right results">{{ results}}</div>
+        </div>
+
+        {% endif %}
+
+
+      </div>
+      {{ content_bottom}}</div>
+    </div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+var seller_display = function (data){
+  thisid = data.currentTarget.id; //get id of current selector
+  $('#'+ thisid + ' .wk_seller_info').slideDown();
+  $('#'+ thisid).unbind('mouseenter');
+}
+var seller_hide = function (data){
+  thisid = data.currentTarget.id; //get id of current selector
+  $('#'+ thisid + ' .wk_seller_info').slideUp('slow',function(){
+    $('.wk-seller-thumb').bind('mouseenter',seller_display);
+  });
+}
+
+$('.wk-seller-thumb').bind({'mouseenter' : seller_display,'mouseleave':seller_hide });
+
+$(".product-thumb").mouseover(function(){
+    $(this).find('#wk_seller_info_container').css('display', 'block');
+});
+$(".product-thumb").mouseout(function(){
+    $(this).find('#wk_seller_info_container').css('display', 'none');
+});
+
+
+  $(document).on('click', '.popup-close', function () {
+    $(".layout-4").removeClass("popup-open popup-center");
+  });
+
+
+
+
+
+</script>
+{{ j3.loadController('journal3/seo/rich_snippets', breadcrumbs) }}
+{{ footer}}

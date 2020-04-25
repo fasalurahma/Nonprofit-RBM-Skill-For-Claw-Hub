@@ -1,0 +1,140 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right">
+        <a href="http://webkul.com/blog/opencart-marketplace-hyperlocal-system/" data-toggle="tooltip" title="{{ button_blog }}" target="_blank" class="btn btn-default"><i class="fa fa-user"></i></a>
+        <a href="http://webkul.uvdesk.com/" data-toggle="tooltip" title="{{ button_support }}" target="_blank" class="btn btn-default"><i class="fa fa-ticket"></i></a>
+        <button type="submit" form="form" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
+        <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a></div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li><a href="{{ breadcrumb['href'] }}">{{ breadcrumb['text'] }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    {% if error_warning %}
+    <div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_edit }}</h3>
+      </div>
+
+      <div class="panel-body">
+        <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form" class="form-horizontal">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">
+              {{ text_api_key }}
+            </label>
+            <div class="col-sm-6">
+              <input type="text" class="form-control" id="module_hyperlocal_google_api_key" name="module_hyperlocal_google_api_key" value="{% if module_hyperlocal_google_api_key %}{{ module_hyperlocal_google_api_key|trim }}{% endif %}"/>
+              <a href="https://developers.google.com/maps/documentation/javascript/get-api-key#key" class="btn btn-link" target="_blank">GET GOOGLE MAP {{ text_api_key }}</a>
+            </div>
+            {% if module_hyperlocal_google_api_key is null or module_hyperlocal_google_api_key is empty  %}
+            <div class="col-sm-3">
+              <button type="button" class="btn btn-primary" id="button-apply">{{ button_apply }}</button>
+            </div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label" for="module_hyperlocal_status">{{ text_status }}</label>
+            <div class="col-sm-3">
+              <select name="module_hyperlocal_status" id="module_hyperlocal_status" class="form-control">
+                <option value="0" {% if module_hyperlocal_status is defined and module_hyperlocal_status == 0 %}{{ 'selected' }}{% endif %}>  {{ text_disabled }} </option>
+                <option value="1" {% if module_hyperlocal_status is defined and module_hyperlocal_status %}{{ 'selected' }}{% endif %}>  {{ text_enabled }} </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group required">
+            <label class="col-sm-3 control-label" for="module_hyperlocal_modal" >
+                <span title="{{ text_modal_help }}" data-toggle="tooltip" data-original-title="{{ text_modal_help }}">{{ text_modal }}</span>
+              </label>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" data-toggle="toggle" id="module_hyperlocal_modal" name="module_hyperlocal_modal" value="{{ module_hyperlocal_modal }}" />
+            </div>
+          </div>
+
+          <div class="form-group">
+              <label class="col-sm-3 control-label" for="module_module_hyperlocal_radius_unit">{{ text_radius_unit }}</label>
+              <div class="col-sm-3">
+                <select name="module_module_hyperlocal_radius_unit" id="module_module_hyperlocal_radius_unit" class="form-control">
+                  <option value="K" {% if module_module_hyperlocal_radius_unit is defined and module_module_hyperlocal_radius_unit == 'K' %}{{ 'selected' }}{% endif %}>  {{ text_km }} </option>
+                  <option value="M" {% if module_module_hyperlocal_radius_unit is defined and module_module_hyperlocal_radius_unit == 'M' %}{{ 'selected' }}{% endif %}>  {{ text_miles }} </option>
+                </select>
+              </div>
+          </div>
+
+          <div class="form-group">
+              <label class="col-sm-3 control-label" for="module_hyperlocal_radius">
+                 <span title="{{ radius_info }}" data-toggle="tooltip" data-original-title="{{ radius_info }}">{{ text_radius }}</span></label>
+              <div class="col-sm-3">
+               <input type="text" class="form-control" data-toggle="toggle" id="module_hyperlocal_radius" name="module_hyperlocal_radius" value="{{ module_hyperlocal_radius }}" />
+              </div>
+          </div>
+
+          <div class="form-group required">
+              <label class="col-sm-3 control-label" for="module_hyperlocal_customer_loc">
+                 <span title="{{ customer_info }}" data-toggle="tooltip" data-original-title="{{ customer_info }}">{{ text_customer }}</span></label>
+              <div class="col-sm-3">
+               <input type="text" class="form-control" data-toggle="toggle" id="module_hyperlocal_customer_loc" name="module_hyperlocal_customer_loc" value="{{ module_hyperlocal_customer_loc }}" />
+               <input type="hidden" class="form-control" data-toggle="toggle" id="module_hyperlocal_customer_lat" name="module_hyperlocal_customer_lat" value="{{ module_hyperlocal_customer_lat }}" />
+               <input type="hidden" class="form-control" data-toggle="toggle" id="module_hyperlocal_customer_lng" name="module_hyperlocal_customer_lng" value="{{ module_hyperlocal_customer_lng }}" />
+              </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAILN6XYVILDr0Yfm9iXTklkDFF-rBPKiw&v=3.exp&libraries=places"></script> -->
+{% if module_hyperlocal_google_api_key is defined and module_hyperlocal_google_api_key %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{module_hyperlocal_google_api_key|trim }}&v=3.exp&libraries=places"></script>
+{% else %}
+<script type="text/javascript">
+$('#button-apply').on('click', function () {
+  if ($.getScript('https://maps.googleapis.com/maps/api/js?key=' + $('#module_hyperlocal_google_api_key').val().trim() + '&v=3.exp&libraries=places')) {
+    $('.breadcrumb').after('<div class="alert alert-success"><i class="fa fa-check-circle"></i> {{ text_success_map_key }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+  }
+});
+</script>
+{% endif %}
+<script type="text/javascript">
+
+  $('#module_hyperlocal_customer_loc').on('click', function() {
+
+    function initialize() {
+
+      var address = (document.getElementById('module_hyperlocal_customer_loc'));
+      var autocomplete = new google.maps.places.Autocomplete(address);
+      autocomplete.setTypes(['geocode']);
+      google.maps.event.addListener(autocomplete, 'place_changed', function() {
+          var place = autocomplete.getPlace();
+
+          if (!place.geometry) {
+              return;
+          } else {
+            geocoder = new google.maps.Geocoder();
+            var address = $('#module_hyperlocal_customer_loc').val();
+            geocoder.geocode( { 'address': address}, function(results, status) {
+              if (status == google.maps.GeocoderStatus.OK) {
+                $('#module_hyperlocal_customer_lat').val(results[0].geometry.location.lat());
+                $('#module_hyperlocal_customer_lng').val(results[0].geometry.location.lng());
+              }
+            });
+          }
+    });
+  }
+  google.maps.event.addDomListener(window, 'click', initialize);
+
+  });
+
+</script>
+{{ footer }}

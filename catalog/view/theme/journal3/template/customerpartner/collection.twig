@@ -1,0 +1,117 @@
+
+<div id="seller-collection">
+		<div class="row collection-top">
+
+		{% if j3.settings.get('sortBarStatus') %}
+			<div class="products-filter">
+				<div class="grid-list">
+					<button id="btn-grid-view" class="view-btn {% if j3.settings.get('globalProductView') == 'grid' %}active{% endif %}" data-toggle="tooltip" title="{{ button_grid }}" data-view="grid"></button>
+            		<button id="btn-list-view" class="view-btn {% if j3.settings.get('globalProductView') == 'list' %}active{% endif %}" data-toggle="tooltip" title="{{ button_list }}" data-view="list"></button>
+					<a href="{{ compare }}" id="compare-total" class="compare-btn">{{ text_compare }}</a>
+				</div>
+				<div class = "col-md-4">
+					<div class="col-md-6 text-right">
+						<label class="control-label" for="input-sort">{{ text_product_name }}</label>
+					</div>
+
+					<div class="col-md-6 text-right">
+						<input type="text" name="input" value="{{ product_name is defined and product_name ? product_name : '' }}"  class="form-control col-sm-3"/>
+					</div>
+				</div>
+
+				<div class="select-group">
+					<div class="input-group input-group-sm sort-by">
+					<label class="input-group-addon" for="input-sort">{{ text_sort }}</label>
+					<select id="input-sort" class="form-control" onchange="location = this.value;">
+						{% for sorts in sorts %}
+						{% if sorts.value == '%s-%s'|format(sort, order) %}
+							<option value="{{ sorts.href }}" selected="selected">{{ sorts.text }}</option>
+						{% else %}
+							<option value="{{ sorts.href }}">{{ sorts.text }}</option>
+						{% endif %}
+						{% endfor %}
+					</select>
+					</div>
+					<div class="input-group input-group-sm per-page">
+						<label class="input-group-addon" for="input-limit">{{ text_limit }}</label>
+						<select id="input-limit" class="form-control" onchange="loadCollection_collection(false,this.value)">
+							{% for limits in limits %}
+								{% if limits.value == limit %}
+									<option value="{{ limits.href }}" selected="selected">{{ limits.text }}</option>
+								{% else %}
+									<option value="{{ limits.href }}">{{ limits.text }}</option>
+								{% endif %}
+							{% endfor %}
+						</select>
+					</div>
+				</div>
+			</div>
+			{% endif %}
+		</div>
+	<div class="row">
+		<div class="col-md-3">
+			<!-- for category list-->
+			{% if (categories) %}
+				<column id="column-left">
+					<ul class="mp-list-group" id="category-menu" style="border:none;box-shadow:unset;">
+
+						<li class="mp-list-group-item mp-list-group-collection active">
+						  <a data-collection-url="{{ collection_url }}" class="default-work">{{ 'All' }}</a>
+						  <i class="fa fa-caret-down" style="font-size:20px;float:right;"></i>
+						</li>
+
+						{% for category in categories %}
+							{% if (category['category_id'] == category_id) %}
+								<li class="mp-list-group-item mp-list-group-collection active">
+									<a data-collection-url="{{ category['href'] }}" class="default-work">{{ category['name'] }}</a>
+									<i class="fa fa-caret-down" style="font-size:20px;float:right;"></i>
+								</li>
+								{% if (category['children']) %}
+									{% for child in category['children'] %}
+										{% if (child['category_id'] == child_id) %}
+											<li class="mp-list-group-item mp-list-group-collection active hide-child">
+												<a data-collection-url="{{ child['href'] }}" class="default-work">&nbsp;&nbsp;&nbsp;- {{ child['name'] }}</a>
+											</li>
+										{% else %}
+											<li class="mp-list-group-item mp-list-group-collection active hide-child">
+												<a data-collection-url="{{ child['href'] }}" class="default-work">&nbsp;&nbsp;&nbsp;- {{ child['name'] }}</a>
+											</li>
+										{% endif %}
+									{% endfor %}
+								{% endif %}
+							{% else %}
+							<li class="mp-list-group-item mp-list-group-collection active">
+								<a data-collection-url="{{ category['href'] }}" class="default-work">{{ category['name'] }}</a>
+								<i class="fa fa-caret-down" style="font-size:20px;float:right;"></i>
+							</li>
+							{% endif %}
+						{% endfor %}
+					</ul>
+				</column>
+			{% endif %}
+		</div>
+
+		<div class="col-md-9">
+			{% if (products) %}
+				<div id="mp-products">
+					<div id="seller-collection">
+						 <div class="main-products product-{{ j3.settings.get('globalProductView') }}">
+						 {% set display = j3.settings.get('globalProductView') %}
+							
+							{% include "journal3/template/journal3/product_card.twig" %}
+							
+						</div>
+
+						<div class="row pagination" id="seller-collection">
+							<div class="col-sm-6 text-left links">{{ pagination}}</div>
+							<div class="col-sm-6 text-right results" style="text-align:right;">{{ results}}</div>
+						</div>
+					</div>
+				</div>
+			{% endif %}
+		</div>
+		{% if (not categories and not products) %}
+			<p>{{ text_empty }}</p>
+		{% endif %}
+	</div>
+</div>

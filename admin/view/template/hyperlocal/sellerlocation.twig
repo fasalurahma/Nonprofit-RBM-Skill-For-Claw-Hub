@@ -1,0 +1,156 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right">
+          <button type="submit" form="form" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
+          <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li><a href="{{ breadcrumb['href'] }}">{{ breadcrumb['text'] }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if error_warning %}
+    <div class="alert alert-danger">
+        <i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+    {% if success %}
+    <div class="alert alert-success"><i class="fa fa-exclamation-circle"></i> {{ success }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_edit }}</h3>
+      </div>
+      <div class="panel-body">
+      <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form" class="form-horizontal">
+            <div class="table-responsive">
+              <table id="location" class="table table-stripped table-bordered table-hover">
+                <thead>
+                  <tr>
+                    <td class="text-center col-sm-5 required">{{ text_seller }}</td>
+                    <td class="text-center col-sm-5 required">{{ text_location }}</td>
+                    {% if location_id is not defined %}
+                    <td class="text-center col-sm-2">{{ text_action }}</td>
+                    {% endif %}
+                  </tr>
+                </thead>
+                <tbody id="main_table">
+                <tr></tr>
+                {% set location_row = 0 %}
+                {% if location is defined and location %}
+                {% for key, value in location %}
+                <tr id="location_{{ location_row }}">
+                  <td class="text-left">
+                    <select name="seller[{{ location_row }}][seller_id]" class="form-control">
+                      <option value="0">Admin</option>
+                        {% for partner, seller in partners %}
+                        {% if seller['customer_id'] == value['seller_id'] %}
+                        <option value="{{ seller['customer_id'] }}" selected>{{ seller['seller_name'] }}
+                        </option>
+                        {% else %}
+                        <option value="{{ seller['customer_id'] }}" >{{ seller['seller_name'] }}
+                        </option>
+                        {% endif %}
+                      {% endfor %}
+                    </select>
+                    {% if error_seller_value[location_row]['seller_id'] is defined %}
+                    <div class="text-danger">{{ error_seller_value[location_row]['seller_id'] }}</div>
+                    {% endif %}
+                  </td>
+                  <td class="text-left">
+                    <input class="form-control location" type="text" value="{{ value['location'] }}" name="seller[{{ location_row }}][location]" id="seller[{{ location_row }}][location]" placeholder="{{ text_location }}"/>
+                    <input type="hidden" class="form-control longitude" type="text" value="{{ value['longitude'] }}" name="seller[{{ location_row }}][longitude]" id="seller[{{ location_row }}][longitude]" placeholder="{{ text_longitude }}"/>
+                    <input type="hidden" class="form-control latitude" type="text" value="{{ value['latitude'] }}" name="seller[{{ location_row }}][latitude]" id="seller[{{ location_row }}][latitude]" placeholder="{{ text_latitude }}" />
+                    {% if error_seller_value[location_row]['location'] is defined or error_seller_value[location_row]['longitude'] is defined or error_seller_value[location_row]['latitude'] is defined %}
+                    <div class="text-danger">{{ error_seller_value[location_row]['location'] }}</div>
+                    {% endif %}
+                  </td>
+                  {% if location_id is not defined %}
+                  <td class="text-right" colspan="3">
+                    <button type="button" onclick="$('#location_{{ location_row }}').remove();" data-toggle="tooltip" rel="tooltip" title="{{ button_remove }}" class="btn btn-danger btn-responsive">
+                    <i class="fa fa-minus-circle"></i>
+                    </button>
+                  </td>
+                  {% endif %}
+                </tr>
+                {% set location_row = location_row +1 %}
+                {% endfor %}
+                {% endif %}
+                </tbody>
+                {% if location_id is not defined %}
+                <tfoot>
+                    <tr>
+                      <td class="text-right" colspan="3"><button type="button" onclick="addLocation();" data-toggle="tooltip" title="" class="btn btn-primary"><i class="fa fa-plus-circle"></i></button></td>
+                    </tr>
+                </tfoot>
+                 {% endif %}
+              </table>
+            </div>
+
+        </div>
+        <input type="hidden" id="map_canvas">
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ module_hyperlocal_google_api_key|trim }}&v=3.exp&libraries=places"></script>
+
+
+<script type="text/javascript">
+
+      $('body').on('click','.location', function() {
+        var obj = $(this).attr('id');
+
+        function initialize() {
+
+        var address = (document.getElementById(obj));
+        var autocomplete = new google.maps.places.Autocomplete(address);
+        autocomplete.setTypes(['geocode']);
+        google.maps.event.addListener(autocomplete, 'place_changed', function() {
+            var place = autocomplete.getPlace();
+
+            if (!place.geometry) {
+                return;
+            } else {
+              geocoder = new google.maps.Geocoder();
+              var address = $('#'+obj).val();
+              geocoder.geocode( { 'address': address}, function(results, status) {
+                if (status == google.maps.GeocoderStatus.OK) {
+                  $('#'+obj).next('.longitude').val(results[0].geometry.location.lng());
+                  $('#'+obj).next().next('.latitude').val(results[0].geometry.location.lat());
+                }
+              });
+            }
+      });
+    }
+    google.maps.event.addDomListener(window, 'click', initialize);
+
+    });
+
+</script>
+
+<script type="text/javascript">
+  var index = {{ location_row }};
+  function addLocation () {
+
+    html = '<tr id="location_'+ index +'">';
+    html += '<td class="text-left"><select name="seller['+ index +'][seller_id]" class="form-control"><option></option><option value=0>Admin</option>{% for partner, value in partners %}<option value="{{ value['customer_id'] }}">{{ value['seller_name'] }}</option>{% endfor %}</select></td>';
+    html += '<td class="text-left"><input class="form-control location" type="text" value="" id = "seller'+ index +'" name="seller['+ index +'][location]" placeholder="{{ text_location }}"/><input type="hidden" class="form-control longitude" type="text" value="" name="seller['+ index +'][longitude]" placeholder="{{ text_longitude }}"/><input type="hidden" class="form-control latitude" type="text" value="" name="seller['+ index +'][latitude]" placeholder="{{ text_latitude }}" /></td>';
+    html += '<td class="text-right" colspan="3"><button type="button" onclick="$(\'#location_' + index + '\').remove();" data-toggle="tooltip" rel="tooltip" title="{{ button_remove }}" class="btn btn-danger btn-responsive"><i class="fa fa-minus-circle"></i></button></td>';
+    html += '</tr>';
+
+    $('#main_table').append(html);
+    index++;
+  }
+
+</script>
+{{ footer }}

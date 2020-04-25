@@ -1,0 +1,181 @@
+<style type="text/css">
+  .location ul li > div {
+    color: #777;
+  }
+  .pac-container {
+    z-index: 9999999;;
+  }
+  .modal-content{
+    border-radius: 0px;
+    background-color: #f5f5f5;
+  }
+
+</style>
+
+
+<script type="text/javascript">
+  $( document ).ready(function() {
+    $('#myModal .error').text('');
+    $('#path_head').val(window.location.href);
+  });
+
+        function initialize() {
+        var address = (document.getElementById('my-address_head'));
+        var autocomplete = new google.maps.places.Autocomplete(address);
+        autocomplete.setTypes(['geocode']);
+        google.maps.event.addListener(autocomplete, 'place_changed', function() {
+            var place = autocomplete.getPlace();
+            for(var i=0, len=place.address_components.length; i<len; i++) {
+              var ac = place.address_components[i];
+              if(ac.types.indexOf("country") >= 0 ){
+                 country = ac.long_name;
+              } else if(ac.types.indexOf("administrative_area_level_1") >= 0 ){
+                 state = ac.long_name;
+              } else if(ac.types.indexOf("locality") >= 0 ) {
+                 city = ac.long_name;
+              }
+            }
+
+            if (!place.geometry) {
+                return;
+            } else {
+              geocoder = new google.maps.Geocoder();
+              var address = document.getElementById("my-address_head").value;
+              geocoder.geocode( { 'address': address}, function(results, status) {
+                if (status == google.maps.GeocoderStatus.OK) {
+                  document.getElementById('longitude_head').value = results[0].geometry.location.lng();
+                  document.getElementById('latitude_head').value = results[0].geometry.location.lat();
+                }
+              });
+            }
+      });
+}
+google.maps.event.addDomListener(window, 'load', initialize);
+</script>
+<script type="text/javascript">
+function getLocation() {
+  if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(showPosition);
+  }
+}
+
+function showPosition(position) {
+    GetAddress(position.coords.latitude,position.coords.longitude);
+}
+
+function GetAddress(latitude,longitude) {
+
+    var lat = parseFloat(latitude);
+    var lng = parseFloat(longitude);
+    var latlng = new google.maps.LatLng(lat, lng);
+    var geocoder = geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ 'latLng': latlng }, function (results, status) {
+      if (status == google.maps.GeocoderStatus.OK) {
+          if (results[0]) {
+            var place = results[0];
+            for(var i=0, len=place.address_components.length; i<len; i++) {
+              var ac = place.address_components[i];
+              if(ac.types.indexOf("country") >= 0 ){
+                 country = ac.long_name;
+              } else if(ac.types.indexOf("administrative_area_level_1") >= 0 ){
+                 state = ac.long_name;
+              } else if(ac.types.indexOf("locality") >= 0 ) {
+                 city = ac.long_name;
+              }
+            }
+
+            $.ajax({
+              type: 'POST',
+              data: ({address : results[1].formatted_address ,latitude : lat ,longitude : lng,country : (country ? country : false),state : (state ? state : false), city : (city ? city :false)}),
+              url: 'index.php?route=common/location/autoLocation',
+              success: function(data){
+                console.log('success');
+                //window.location = 'index.php?route=hyperlocal/seller_products';
+              }
+            });
+          }
+      }
+
+    });
+}
+</script>
+{% if not config_maintenance %}
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <div id="logo" class="row">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ text_close }}</span></button>
+          <div class="col-sm-5" style="margin-right: 5%;">
+            {% if logo %}
+              <img src="{{ logo }}" title=" " alt=" " class="img-responsive" style="max-height:80px;" />
+            {% endif %}
+          </div>
+          <div class="col-sm-5">
+            <h4 style="color: #560606;">{{ module_hyperlocal_modal }}</h4>
+          </div>
+        </div>
+      </div>
+      <div class="modal-body" style="overflow:auto;">
+        <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form" class="form-horizontal">
+          <div class="form-group row">
+            <label class="col-sm-3 control-label" style="color: #560606;">
+                  {{ text_entry }}
+            </label>
+            <div class="col-sm-6">
+              <input type="text" id="my-address_head" name="address" class="form-control"/>
+              <input type="text" id="longitude_head" name="longitude_head" style="display:none;" class="form-control"  />
+              <input type="text" id="latitude_head" name="latitude_head" style="display:none;" class="form-control" />
+              <input type="text" id="path_head" name="path_head" style="display:none;" class="form-control" />
+            </div>
+
+          </div>
+          <div class="error text-center text-danger"></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" title="{{ button_save }}" id="btn_save_loc" data-toggle="tooltip" form="form" type="button" data-original-title="Save">{{ button_save }}</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endif %}
+<script>
+
+$('#btn_save_loc').on('click',function(){
+  var cart_products = 0;
+  $.ajax({
+    url: 'index.php?route=common/location/getCartProducts',
+    dataType: 'json',
+    success: function (json) {
+      cart_products = json['cart_products'];
+    },
+    async: false
+  });
+  if ($('#my-address_head').val()) {
+    var r = 1;
+    if (cart_products) {
+      r = confirm('{{ location_warning }}');
+    }
+    if (r) {
+      $.ajax({
+        url: 'index.php?route=common/location/save',
+        data: $('#form').serialize(),
+        type: 'post',
+        dataType: 'json',
+        complete: function () {
+          $('#myModal').modal('hide');
+          window.location.reload();
+        }
+      });
+    } else {
+      $('#myModal').modal('hide');
+    }
+  } else {
+    $('#myModal .error').text('{{ text_error_loc }}').slideDown('slow').delay(2000).slideUp('slow');
+  }
+});
+</script>
